@@ -4,12 +4,98 @@
     <meta charset="utf-8">
     <title>Kevin's 360&deg; A-Frame Gallery</title>
     <meta name="description" content="Kevin's 360&deg; A-Frame Gallery">
+
+<!-- voice rec -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script>
+    "use strict";
+
+    // first we make sure annyang started succesfully
+    if (annyang) {
+
+      // define the functions our commands will run.
+      var hello = function() {
+        $("#hello").slideDown("slow");
+        scrollTo("#section_hello");
+      };
+
+      var showFlickr = function(tag) {
+        $('#flickrGallery').show();
+        $('#flickrLoader p').text('Searching for '+tag).fadeIn('fast');
+        var url = '//api.flickr.com/services/rest/?method=flickr.photos.search&api_key=98346ee73ce458c1ee3bf50de52c914f&sort=interestingness-desc&per_page=9&format=json&callback=jsonFlickrApi&tags='+tag;
+        $.ajax({
+          type: 'GET',
+          url: url,
+          async: false,
+          jsonpCallback: 'jsonFlickrApi',
+          contentType: "application/json",
+          dataType: 'jsonp'
+        });
+        scrollTo("#section_image_search");
+      };
+
+      var jsonFlickrApi = function(results) {
+        $('#flickrLoader p').fadeOut('slow');
+        var photos = results.photos.photo;
+        $.each(photos, function(index, photo) {
+          $(document.createElement("img"))
+            .attr({ src: '//farm'+photo.farm+'.staticflickr.com/'+photo.server+'/'+photo.id+'_'+photo.secret+'_s.jpg' })
+            .addClass("flickrGallery")
+            .appendTo(flickrGallery);
+        });
+      };
+
+      var getStarted = function() {
+        window.location.href = 'https://github.com/TalAter/annyang';
+      }
+
+      // define our commands.
+      // * The key is the phrase you want your users to say.
+      // * The value is the action to do.
+      //   You can pass a function, a function name (as a string), or write your function as part of the commands object.
+      var commands = {
+        'hello (there)':        hello,
+        'show me *search':      showFlickr,
+        'let\'s get started':   getStarted,
+      };
+
+      // OPTIONAL: activate debug mode for detailed logging in the console
+      annyang.debug();
+
+      // Add voice commands to respond to
+      annyang.addCommands(commands);
+
+      // OPTIONAL: Set a language for speech recognition (defaults to English)
+      // For a full list of language codes, see the documentation:
+      // https://github.com/TalAter/annyang/blob/master/docs/FAQ.md#what-languages-are-supported
+      annyang.setLanguage('en');
+
+      // Start listening. You can call this here, or attach this call to an event, button, etc.
+      annyang.start();
+    } else {
+      $(document).ready(function() {
+        $('#unsupported').fadeIn('fast');
+      });
+    }
+
+    // var scrollTo = function(identifier, speed) {
+    //   $('html, body').animate({
+    //       scrollTop: $(identifier).offset().top
+    //   }, speed || 1000);
+    // }
+    </script>
+<!-- voice rec -->
+
+
+
     <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
     <script src="https://npmcdn.com/aframe-animation-component@3.0.1"></script>
     <script src="https://npmcdn.com/aframe-event-set-component@3.0.1"></script>
     <script src="https://npmcdn.com/aframe-layout-component@3.0.1"></script>
     <script src="https://npmcdn.com/aframe-template-component@3.1.1"></script>
     <script src="components/set-image.js"></script>
+
   </head>
   <body>
     <a-scene>
@@ -30,6 +116,35 @@
         <img id="peak-thumb" crossorigin="anonymous" src="gallery/thumbs-peak.png">
 
         <audio id="click-sound" crossorigin="anonymous" src="https://cdn.aframe.io/360-image-gallery-boilerplate/audio/click.ogg"></audio>
+
+
+    <script>
+
+      //-------- start commands
+    var commands = {
+      // annyang will capture anything after a splat (*) and pass it to the function.
+      // e.g. saying "Show me Batman and Robin" is the same as calling showFlickr('Batman and Robin');
+      'show me *tag': showFlickr,
+
+      // By defining a part of the following command as optional, annyang will respond to both:
+      // "say hello to my little friend" as well as "say hello friend"
+      'say hello (to my little) friend': greeting
+    };
+
+    var showFlickr = function(tag) {
+      var url = 'http://api.flickr.com/services/rest/?tags='+tag;
+      $.getJSON(url);
+    }
+
+    var calculateStats = function(month) {
+      $('#stats').text('Statistics for '+month);
+    }
+
+    var greeting = function() {
+      $('#greeting').text('Hello!');
+    }
+    </script>
+    <!-- end of voice rec functions />
 
 
         <!-- Image link template to be reused. -->
